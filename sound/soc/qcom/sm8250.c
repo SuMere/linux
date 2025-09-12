@@ -16,8 +16,6 @@
 #include "usb_offload_utils.h"
 #include "sdw.h"
 
-#define MI2S_BCLK_RATE		1536000
-
 struct sm8250_snd_data {
 	bool stream_prepared[AFE_PORT_MAX];
 	struct snd_soc_card *card;
@@ -65,6 +63,28 @@ static void sm8250_snd_exit(struct snd_soc_pcm_runtime *rtd)
 
 }
 
+static int sm8250_mi2s_bclk_id(int dai_id)
+{
+	switch (dai_id) {
+	case PRIMARY_MI2S_RX:
+		return Q6AFE_LPASS_CLK_ID_PRI_MI2S_IBIT;
+	case SECONDARY_MI2S_RX:
+		return Q6AFE_LPASS_CLK_ID_SEC_MI2S_IBIT;
+	case TERTIARY_MI2S_RX:
+		return Q6AFE_LPASS_CLK_ID_TER_MI2S_IBIT;
+	case QUINARY_MI2S_RX:
+		return Q6AFE_LPASS_CLK_ID_QUI_MI2S_IBIT;
+	case SENARY_MI2S_RX:
+		return Q6AFE_LPASS_CLK_ID_SEN_MI2S_IBIT;
+	case LPI_MI2S_RX_0:
+		return Q6AFE_LPASS_CLK_ID_INT0_MI2S_IBIT;
+	case LPI_MI2S_TX_3:
+		return Q6AFE_LPASS_CLK_ID_INT3_MI2S_IBIT;
+	default:
+		return -EINVAL;
+	}
+}
+
 static int sm8250_be_hw_params_fixup(struct snd_soc_pcm_runtime *rtd,
 				     struct snd_pcm_hw_params *params)
 {
@@ -89,68 +109,32 @@ static int sm8250_snd_startup(struct snd_pcm_substream *substream)
 	struct snd_soc_dai *cpu_dai = snd_soc_rtd_to_cpu(rtd, 0);
 	struct snd_soc_dai *codec_dai = snd_soc_rtd_to_codec(rtd, 0);
 
-	switch (cpu_dai->id) {
-	case PRIMARY_MI2S_RX:
+	if (sm8250_mi2s_bclk_id(cpu_dai->id) >= 0) {
 		codec_dai_fmt |= SND_SOC_DAIFMT_NB_NF | SND_SOC_DAIFMT_I2S;
-		snd_soc_dai_set_sysclk(cpu_dai,
-			Q6AFE_LPASS_CLK_ID_PRI_MI2S_IBIT,
-			MI2S_BCLK_RATE, SNDRV_PCM_STREAM_PLAYBACK);
 		snd_soc_dai_set_fmt(cpu_dai, fmt);
 		snd_soc_dai_set_fmt(codec_dai, codec_dai_fmt);
-		break;
-	case SECONDARY_MI2S_RX:
-		codec_dai_fmt |= SND_SOC_DAIFMT_NB_NF | SND_SOC_DAIFMT_I2S;
-		snd_soc_dai_set_sysclk(cpu_dai,
-			Q6AFE_LPASS_CLK_ID_SEC_MI2S_IBIT,
-			MI2S_BCLK_RATE, SNDRV_PCM_STREAM_PLAYBACK);
-		snd_soc_dai_set_fmt(cpu_dai, fmt);
-		snd_soc_dai_set_fmt(codec_dai, codec_dai_fmt);
-		break;
-	case TERTIARY_MI2S_RX:
-		codec_dai_fmt |= SND_SOC_DAIFMT_NB_NF | SND_SOC_DAIFMT_I2S;
-		snd_soc_dai_set_sysclk(cpu_dai,
-			Q6AFE_LPASS_CLK_ID_TER_MI2S_IBIT,
-			MI2S_BCLK_RATE, SNDRV_PCM_STREAM_PLAYBACK);
-		snd_soc_dai_set_fmt(cpu_dai, fmt);
-		snd_soc_dai_set_fmt(codec_dai, codec_dai_fmt);
-		break;
-	case QUINARY_MI2S_RX:
-		codec_dai_fmt |= SND_SOC_DAIFMT_NB_NF | SND_SOC_DAIFMT_I2S;
-		snd_soc_dai_set_sysclk(cpu_dai,
-			Q6AFE_LPASS_CLK_ID_QUI_MI2S_IBIT,
-			MI2S_BCLK_RATE, SNDRV_PCM_STREAM_PLAYBACK);
-		snd_soc_dai_set_fmt(cpu_dai, fmt);
-		snd_soc_dai_set_fmt(codec_dai, codec_dai_fmt);
-		break;
-	case SENARY_MI2S_RX:
-		codec_dai_fmt |= SND_SOC_DAIFMT_NB_NF | SND_SOC_DAIFMT_I2S;
-		snd_soc_dai_set_sysclk(cpu_dai,
-			Q6AFE_LPASS_CLK_ID_SEN_MI2S_IBIT,
-			MI2S_BCLK_RATE, SNDRV_PCM_STREAM_PLAYBACK);
-		snd_soc_dai_set_fmt(cpu_dai, fmt);
-		snd_soc_dai_set_fmt(codec_dai, codec_dai_fmt);
-		break;
-	case LPI_MI2S_RX_0:
-		codec_dai_fmt |= SND_SOC_DAIFMT_NB_NF | SND_SOC_DAIFMT_I2S;
-		snd_soc_dai_set_sysclk(cpu_dai,
-			Q6AFE_LPASS_CLK_ID_INT0_MI2S_IBIT,
-			MI2S_BCLK_RATE, SNDRV_PCM_STREAM_PLAYBACK);
-		snd_soc_dai_set_fmt(cpu_dai, fmt);
-		snd_soc_dai_set_fmt(codec_dai, codec_dai_fmt);
-		break;
-	case LPI_MI2S_TX_3:
-		codec_dai_fmt |= SND_SOC_DAIFMT_NB_NF | SND_SOC_DAIFMT_I2S;
-		snd_soc_dai_set_sysclk(cpu_dai,
-			Q6AFE_LPASS_CLK_ID_INT3_MI2S_IBIT,
-			MI2S_BCLK_RATE, SNDRV_PCM_STREAM_CAPTURE);
-		snd_soc_dai_set_fmt(cpu_dai, fmt);
-		snd_soc_dai_set_fmt(codec_dai, codec_dai_fmt);
-		break;
-	default:
-		break;
 	}
 
 	return qcom_snd_sdw_startup(substream);
+}
+
+static int sm8250_snd_hw_params(struct snd_pcm_substream *substream,
+				struct snd_pcm_hw_params *params)
+{
+	struct snd_soc_pcm_runtime *rtd = snd_soc_substream_to_rtd(substream);
+	struct snd_soc_dai *cpu_dai = snd_soc_rtd_to_cpu(rtd, 0);
+	int clk_id, bclk;
+
+	clk_id = sm8250_mi2s_bclk_id(cpu_dai->id);
+	if (clk_id < 0)
+		return 0;
+
+	/* The DSP clocks out whole slots, so use the physical sample width */
+	bclk = snd_soc_calc_bclk(params_rate(params),
+				 params_physical_width(params),
+				 params_channels(params), 1);
+
+	return snd_soc_dai_set_sysclk(cpu_dai, clk_id, bclk, substream->stream);
 }
 
 static int sm8250_snd_prepare(struct snd_pcm_substream *substream)
@@ -173,6 +157,7 @@ static int sm8250_snd_hw_free(struct snd_pcm_substream *substream)
 
 static const struct snd_soc_ops sm8250_be_ops = {
 	.startup = sm8250_snd_startup,
+	.hw_params = sm8250_snd_hw_params,
 	.shutdown = qcom_snd_sdw_shutdown,
 	.hw_free = sm8250_snd_hw_free,
 	.prepare = sm8250_snd_prepare,
