@@ -112,6 +112,8 @@
 
 	sound {
 		compatible = "qcom,qrb2210-sndcard";
+		pinctrl-0 = <&lpi_i2s2_active>;
+		pinctrl-names = "default";
 		model = "Arduino-Imola-HPH-LOUT";
 		audio-routing =	"IN1_HPHL", "HPHL_OUT",
 				"IN2_HPHR", "HPHR_OUT",
@@ -126,6 +128,23 @@
 
 			cpu {
 				sound-dai = <&q6afedai RX_CODEC_DMA_RX_0>;
+			};
+
+			platform {
+				sound-dai = <&q6routing>;
+			};
+		};
+
+		hdmi-i2s-dai-link {
+			link-name = "HDMI/I2S Playback";
+
+			codec {
+				sound-dai = <&anx7625 0>;
+			};
+
+			cpu {
+				sound-dai = <&q6afedai SECONDARY_MI2S_RX>;
+				dai-tdm-slot-width = <32>;
 			};
 
 			platform {
@@ -204,6 +223,14 @@
 				sound-dai = <&q6asmdai MSM_FRONTEND_DAI_MULTIMEDIA3>;
 			};
 		};
+
+		mm4-dai-link {
+			link-name = "MultiMedia4";
+
+			cpu {
+				sound-dai = <&q6asmdai MSM_FRONTEND_DAI_MULTIMEDIA4>;
+			};
+		};
 	};
 
 	vreg_anx_30: regulator-anx-30 {
@@ -256,6 +283,7 @@
 		vdd10-supply = <&pm4125_l11>;
 		vdd18-supply = <&pm4125_l15>;
 		vdd33-supply = <&vreg_anx_30>;
+		#sound-dai-cells = <1>;
 		analogix,audio-enable;
 		analogix,lane0-swing = /bits/ 8 <0x14 0x54 0x64 0x74>;
 		analogix,lane1-swing = /bits/ 8 <0x14 0x54 0x64 0x74>;
@@ -335,6 +363,21 @@
 	regulator-max-microvolt = <5000000>;
 
 	status = "okay";
+};
+
+/* Secondary MI2S uses SD0 for audio on the ANX7625 DP bridge */
+&q6afedai {
+	dai@18 {
+		reg = <SECONDARY_MI2S_RX>;
+		qcom,sd-lines = <0>;
+	};
+};
+
+/* The qcm2290 UCM plays DP audio on MultiMedia4 */
+&q6asmdai {
+	dai@3 {
+		reg = <MSM_FRONTEND_DAI_MULTIMEDIA4>;
+	};
 };
 
 &qupv3_id_0 {
