@@ -93,10 +93,23 @@ static int sm8250_be_hw_params_fixup(struct snd_soc_pcm_runtime *rtd,
 	struct snd_interval *channels = hw_param_interval(params,
 					SNDRV_PCM_HW_PARAM_CHANNELS);
 	struct snd_mask *fmt = hw_param_mask(params, SNDRV_PCM_HW_PARAM_FORMAT);
+	struct snd_soc_dai *cpu_dai = snd_soc_rtd_to_cpu(rtd, 0);
+	struct qcom_snd_tdm_slot_cfg cpu_cfg, codec_cfg;
 
 	rate->min = rate->max = 48000;
 	channels->min = channels->max = 2;
 	snd_mask_set_format(fmt, SNDRV_PCM_FORMAT_S16_LE);
+
+	/*
+	 * The DSP sizes the MI2S slots from the sample width, so run the
+	 * backend at S32_LE when the board asks for 32-bit slots.
+	 */
+	if (sm8250_mi2s_bclk_id(cpu_dai->id) >= 0 &&
+	    !qcom_snd_get_dai_tdm_slots(rtd, &cpu_cfg, &codec_cfg) &&
+	    cpu_cfg.slot_width == 32) {
+		snd_mask_none(fmt);
+		snd_mask_set_format(fmt, SNDRV_PCM_FORMAT_S32_LE);
+	}
 
 	return 0;
 }
