@@ -21,6 +21,9 @@ properties:
   reg:
     maxItems: 1
 
+  "#sound-dai-cells":
+    const: 1
+
   interrupts:
     description: used for interrupt pin B8.
     maxItems: 1
@@ -226,6 +229,7 @@ examples:
             vdd10-supply = <&pp1000_mipibrdg>;
             vdd18-supply = <&pp1800_mipibrdg>;
             vdd33-supply = <&pp3300_mipibrdg>;
+            #sound-dai-cells = <1>;
             analogix,audio-enable;
             analogix,lane0-swing = /bits/ 8 <0x14 0x54 0x64 0x74>;
             analogix,lane1-swing = /bits/ 8 <0x14 0x54 0x64 0x74>;
