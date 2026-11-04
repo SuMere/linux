@@ -1999,18 +1999,13 @@ static enum drm_connector_status anx7625_sink_detect(struct anx7625_data *ctx)
 				     connector_status_disconnected;
 }
 
-static int anx7625_audio_hw_params(struct device *dev, void *data,
-				   struct hdmi_codec_daifmt *fmt,
-				   struct hdmi_codec_params *params)
+static int anx7625_audio_config(struct anx7625_data *ctx,
+				struct hdmi_codec_daifmt *fmt,
+				struct hdmi_codec_params *params)
 {
-	struct anx7625_data *ctx = dev_get_drvdata(dev);
+	struct device *dev = ctx->dev;
 	int wl, ch, rate;
 	int ret = 0;
-
-	if (anx7625_sink_detect(ctx) == connector_status_disconnected) {
-		DRM_DEV_DEBUG_DRIVER(dev, "DP not connected\n");
-		return 0;
-	}
 
 	if (fmt->fmt != HDMI_DSP_A && fmt->fmt != HDMI_I2S) {
 		DRM_DEV_ERROR(dev, "only supports DSP_A & I2S\n");
@@ -2123,6 +2118,30 @@ static int anx7625_audio_hw_params(struct device *dev, void *data,
 	}
 
 	return 0;
+}
+
+static int anx7625_audio_hw_params(struct device *dev, void *data,
+				   struct hdmi_codec_daifmt *fmt,
+				   struct hdmi_codec_params *params)
+{
+	struct anx7625_data *ctx = dev_get_drvdata(dev);
+	int ret;
+
+	if (anx7625_sink_detect(ctx) == connector_status_disconnected) {
+		DRM_DEV_DEBUG_DRIVER(dev, "DP not connected\n");
+		return 0;
+	}
+
+	/* The chip is powered down while the display is off */
+	if (pm_runtime_get_if_active(dev) <= 0) {
+		DRM_DEV_DEBUG_DRIVER(dev, "DP not powered\n");
+		return 0;
+	}
+
+	ret = anx7625_audio_config(ctx, fmt, params);
+	pm_runtime_put(dev);
+
+	return ret;
 }
 
 static void anx7625_audio_shutdown(struct device *dev, void *data)
