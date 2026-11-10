@@ -23,6 +23,8 @@
 static struct wcd_sdw_ch_info pm4125_sdw_rx_ch_info[] = {
 	WCD_SDW_CH(PM4125_HPH_L, PM4125_HPH_PORT, BIT(0)),
 	WCD_SDW_CH(PM4125_HPH_R, PM4125_HPH_PORT, BIT(1)),
+	WCD_SDW_CH(PM4125_COMP_L, PM4125_COMP_PORT, BIT(0)),
+	WCD_SDW_CH(PM4125_COMP_R, PM4125_COMP_PORT, BIT(1)),
 };
 
 static struct wcd_sdw_ch_info pm4125_sdw_tx_ch_info[] = {
