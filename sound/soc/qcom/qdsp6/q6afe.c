@@ -1038,6 +1038,9 @@ static int q6afe_callback(struct apr_device *adev, const struct apr_resp_pkt *da
 				wake_up(&afe->wait);
 			}
 			break;
+		case AFE_CMD_REMOTE_LPASS_CORE_HW_DEVOTE_REQUEST:
+			/* nobody waits for the unvote to be acknowledged */
+			break;
 		default:
 			dev_err(afe->dev, "Unknown cmd 0x%x\n",	res->opcode);
 			break;
