@@ -208,6 +208,22 @@
 				sound-dai = <&pmic4125_codec 1>, <&swr0 0>, <&txmacro 0>;
 			};
 		};
+
+		dp_audio_link: hdmi-i2s-dai-link {
+			link-name = "HDMI/I2S Playback";
+
+			cpu {
+				sound-dai = <&q6afedai SECONDARY_MI2S_RX>;
+			};
+
+			platform {
+				sound-dai = <&q6routing>;
+			};
+
+			codec {
+				sound-dai = <&anx7625 0>;
+			};
+		};
 	};
 
 	vreg_anx_30: regulator-anx-30 {
@@ -299,6 +315,19 @@
 				};
 			};
 		};
+
+		ports {
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			port@0 {
+				reg = <0>;
+				anx_dsi0_in: endpoint {
+					remote-endpoint = <&mdss_dsi0_out>;
+					data-lanes = <0 1 2 3>;
+				};
+			};
+		};
 	};
 };
 
@@ -312,6 +341,11 @@
 	status = "okay";
 };
 
+&mdss_dsi0_out {
+	remote-endpoint = <&anx_dsi0_in>;
+	data-lanes = <0 1 2 3>;
+};
+
 &mdss_dsi0_phy {
 	status = "okay";
 };
@@ -321,6 +355,17 @@
 	regulator-max-microvolt = <5000000>;
 
 	status = "okay";
+};
+
+&q6afedai {
+	#address-cells = <1>;
+	#size-cells = <0>;
+	#sound-dai-cells = <1>;
+
+	dai@18 {
+		reg = <SECONDARY_MI2S_RX>;
+		qcom,sd-lines = <0>;
+	};
 };
 
 &qupv3_id_0 {

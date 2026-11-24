@@ -1,0 +1,45 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR BSD-3-Clause)
+/*
+ * Copyright (c) 2026, Arduino SA
+ *
+ * IMX219 camera, 2 lanes. Apply to flat0-connector or flat1-connector.
+ */
+
+/dts-v1/;
+/addon/;
+
+#include <dt-bindings/gpio/gpio.h>
+
+/import/ connector: "arduino,csi-connector";
+
+&connector.conn_csi {
+	csiphy_ep: endpoint {
+		data-lanes = <0 1>;
+		remote-endpoint = <&imx219_ep>;
+	};
+};
+
+&connector.conn_i2c {
+	sensor@10 {
+		compatible = "sony,imx219";
+		reg = <0x10>;
+		clocks = <&connector.conn_clk>;
+		status = "okay";
+
+		VDIG-supply = <&connector.conn_pwr>;
+		VANA-supply = <&connector.conn_pwr>;
+		VDDL-supply = <&connector.conn_pwr>;
+
+		reset-gpios = <&connector 1 GPIO_ACTIVE_HIGH>;
+
+		port {
+			/* MIPI CSI-2 bus endpoint */
+			imx219_ep: endpoint {
+				remote-endpoint = <&csiphy_ep>;
+				clock-lanes = <0>;
+				data-lanes = <1 2>;
+				link-frequencies = /bits/ 64 <456000000>;
+			};
+		};
+	};
+};

@@ -1,0 +1,73 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR BSD-3-Clause)
+/*
+ * Copyright (c) 2026, Arduino SA
+ */
+
+ /dts-v1/;
+/plugin/;
+
+#include <dt-bindings/gpio/gpio.h>
+#include "qrb2210-arduino-imola-carrier-media-common.dtsi"
+
+&{/} {
+	flat0_conn: flat0-connector {
+		compatible = "arduino,csi-connector";
+		#gpio-cells = <2>;
+		gpio-map-mask = <0xf 0x0>;
+		gpio-map-pass-thru = <0x0 0xf>;
+		gpio-map = <0 0 &tlmm 65 0>,	/* P17: FLAT0_P17_GPIO */
+			   <1 0 &pca9555 0 0>;	/* camera reset */
+
+		/export/ connector: &flat0_conn;
+		/export/ conn_i2c: &cci_i2c0;
+		/export/ conn_csi: &camss_port0;
+		/export/ conn_pwr: &cam_pwr_csi0;
+		/export/ conn_clk: &cam24m;
+	};
+
+	flat1_conn: flat1-connector {
+		compatible = "arduino,csi-connector";
+		#gpio-cells = <2>;
+		gpio-map-mask = <0xf 0x0>;
+		gpio-map-pass-thru = <0x0 0xf>;
+		gpio-map = <0 0 &tlmm 75 0>,	/* P17: FLAT1_P17_GPIO */
+			   <1 0 &pca9555 2 0>;	/* camera reset */
+
+		/export/ connector: &flat1_conn;
+		/export/ conn_i2c: &cci_i2c1;
+		/export/ conn_csi: &camss_port1;
+		/export/ conn_pwr: &cam_pwr_csi1;
+		/export/ conn_clk: &cam24m;
+	};
+/*
+	dsi_conn: dsi-connector {
+		compatible = "arduino,dsi-connector";
+
+		//add exports.
+	}
+*/
+	cam_pwr_csi0: cam-pwr-csi0 {
+		compatible = "regulator-fixed";
+		regulator-name = "cam-pwr";
+		startup-delay-us = <100000>;
+		gpio = <&pca9555 1 GPIO_ACTIVE_HIGH>;
+		enable-active-high;
+	};
+
+	cam_pwr_csi1: cam-pwr-csi1 {
+		compatible = "regulator-fixed";
+		regulator-name = "cam-pwr";
+		startup-delay-us = <100000>;
+		gpio = <&pca9555 3 GPIO_ACTIVE_HIGH>;
+		enable-active-high;
+	};
+
+	clocks {
+		cam24m: cam-clk {
+			compatible = "fixed-clock";
+			#clock-cells = <0>;
+			clock-frequency = <24000000>;
+			clock-output-names = "cam24m";
+		};
+	};
+};

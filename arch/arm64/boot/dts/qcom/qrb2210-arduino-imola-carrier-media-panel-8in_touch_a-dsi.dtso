@@ -51,6 +51,10 @@
 	};
 };
 
+&dp_audio_link {
+	status = "disabled";
+};
+
 &mdss_dsi0 {
 	vdda-supply = <&pm4125_l5>;
 	#address-cells = <1>;

@@ -10,17 +10,6 @@
 #include <dt-bindings/leds/common.h>
 #include "qrb2210-arduino-imola-carrier-media-common.dtsi"
 
-&camss {
-	status = "okay";
-
-	vdda-csiphy-1p2-supply = <&pm4125_l5>;
-	vdda-pll-1p8-supply = <&pm4125_l13>;
-};
-
-&cci {
-	status= "okay";
-};
-
 &leds {
 	led1-blue {
 		label = "media-carrier:blue1";
